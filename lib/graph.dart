@@ -35,6 +35,11 @@ class _LineChartSample2State extends State<LineChartSample2> {
     int hour = x.floor();
     int minute = ((x - hour) * 60).round();
 
+    if (minute == 60) {
+      minute = 0;
+      hour += 1;
+    }
+
     final isAm = hour < 12;
     final displayHour = hour % 12 == 0 ? 12 : hour % 12;
     final period = isAm ? '오전' : '오후';
@@ -317,25 +322,16 @@ List<FlSpot> catmullRomInterpolateWithTension(
   return result.where((spot) => spot.x <= 23.9833).toList();
 }
 
-List<Map<String, double>> keyPoints = [
-  {'hour': 0, 'minute': 0, 'value': 2},
-  {'hour': 1, 'minute': 0, 'value': 0},
-  {'hour': 6, 'minute': 0, 'value': 0},
-  {'hour': 7, 'minute': 0, 'value': 2},
-  {'hour': 7, 'minute': 30, 'value': 7},
-  {'hour': 10, 'minute': 0, 'value': 9},
-  {'hour': 13, 'minute': 0, 'value': 10},
-  {'hour': 21, 'minute': 0, 'value': 4},
-  {'hour': 24, 'minute': 0, 'value': 2},
+List<FlSpot> keySpots = [
+  FlSpot(0, 2),
+  FlSpot(1, 0),
+  FlSpot(6, 0),
+  FlSpot(7, 2),
+  FlSpot(7.5, 7),
+  FlSpot(10, 9),
+  FlSpot(13, 10),
+  FlSpot(21, 4),
+  FlSpot(24, 2),
 ];
 
-List<FlSpot> convertToFlSpots(List<Map<String, dynamic>> points) {
-  return points.map((point) {
-    final double x = point['hour'] + (point['minute'] / 60.0);
-    return FlSpot(x, point['value']);
-  }).toList();
-}
-
-List<FlSpot> smoothSpots = catmullRomInterpolateWithTension(
-  convertToFlSpots(keyPoints),
-);
+List<FlSpot> smoothSpots = catmullRomInterpolateWithTension(keySpots);
