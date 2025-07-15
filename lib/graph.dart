@@ -171,16 +171,16 @@ class _LineChartSample2State extends State<LineChartSample2> {
     Widget text;
     switch (value.toInt()) {
       case 2:
-        text = const Text('오전 12시', style: style);
+        text = const Text('오전 12시 ', style: style);
         break;
       case 8:
-        text = const Text('오전 6시', style: style);
+        text = const Text('오전 6시  ', style: style);
         break;
       case 14:
-        text = const Text('오후 12시', style: style);
+        text = const Text('오후 12시 ', style: style);
         break;
       case 20:
-        text = const Text('오후 6시', style: style);
+        text = const Text('오후 6시  ', style: style);
         break;
       default:
         text = const Text('');
