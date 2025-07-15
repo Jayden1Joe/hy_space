@@ -39,7 +39,8 @@ class _LineChartSample2State extends State<LineChartSample2> {
 
   @override
   Widget build(BuildContext context) {
-    final timeText = selectedX != null ? formatKoreanTime(selectedX!) : '';
+    final double nowX = DateTime.now().hour + DateTime.now().minute / 60;
+    final timeText = formatKoreanTime(selectedX ?? nowX);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -52,8 +53,8 @@ class _LineChartSample2State extends State<LineChartSample2> {
                 aspectRatio: 3,
                 child: Padding(
                   padding: const EdgeInsets.only(
-                    right: 4,
-                    left: 4,
+                    right: 10,
+                    left: 10,
                     top: 16,
                     bottom: 0,
                   ),
@@ -61,27 +62,50 @@ class _LineChartSample2State extends State<LineChartSample2> {
                 ),
               ),
             ),
-            if (selectedX != null && selectedPosition != null)
-              Positioned(
-                top: 16,
-                left: (selectedPosition!.dx - 60).clamp(15, chartWidth! - 150),
-                child: Column(
-                  children: [
-                    Text(
-                      timeText,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+            (selectedX != null && selectedPosition != null)
+                ? Positioned(
+                    top: 16,
+                    left: (selectedPosition!.dx - 60).clamp(
+                      15,
+                      chartWidth! - 150,
                     ),
-                    const Text(
-                      '취침까지 4시간 10분',
-                      style: TextStyle(fontSize: 16, color: Colors.white70),
+                    child: Column(
+                      children: [
+                        Text(
+                          timeText,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Text(
+                          '취침까지 4시간 10분',
+                          style: TextStyle(fontSize: 16, color: Colors.white70),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  )
+                : Positioned(
+                    top: 16,
+                    left: 15,
+                    child: Column(
+                      children: [
+                        Text(
+                          timeText,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Text(
+                          '취침까지 4시간 10분',
+                          style: TextStyle(fontSize: 16, color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
           ],
         );
       },
