@@ -190,13 +190,6 @@ class _LineChartSample2State extends State<LineChartSample2> {
     return SideTitleWidget(meta: meta, child: text);
   }
 
-  Widget leftTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(fontWeight: FontWeight.bold, fontSize: 14);
-    String text = '';
-
-    return Text(text, style: style, textAlign: TextAlign.left);
-  }
-
   LineChartData mainData() {
     return LineChartData(
       lineTouchData: LineTouchData(
@@ -220,6 +213,27 @@ class _LineChartSample2State extends State<LineChartSample2> {
               selectedPosition = localPos;
             });
           }
+        },
+        getTouchedSpotIndicator: (barData, spotIndexes) {
+          final LinearGradient? gradient = barData.gradient is LinearGradient
+              ? barData.gradient as LinearGradient
+              : null;
+          final colorStops = gradient?.getSafeColorStops();
+          return spotIndexes.map((index) {
+            final spot = barData.spots[index];
+            final t = spot.x / 24.0; // Normalize to 0~1 for full day
+            final gradientColor = gradient != null && colorStops != null
+                ? lerpGradient(gradient.colors, colorStops, t)
+                : gradientColors.first;
+
+            return TouchedSpotIndicatorData(
+              FlLine(color: gradientColor.withOpacity(0.8), strokeWidth: 3.5),
+              FlDotData(
+                getDotPainter: (spot, percent, barData, index) =>
+                    FlDotCirclePainter(radius: 6, color: gradientColor),
+              ),
+            );
+          }).toList();
         },
       ),
       gridData: FlGridData(show: false),
@@ -320,6 +334,44 @@ List<FlSpot> catmullRomInterpolateWithTension(
   }
 
   return result.where((spot) => spot.x <= 23.9833).toList();
+}
+
+Color lerpGradient(List<Color> colors, List<double> stops, double t) {
+  final length = colors.length;
+  if (stops.length != length) {
+    stops = List.generate(length, (i) => (i + 1) / length);
+  }
+
+  for (var s = 0; s < stops.length - 1; s++) {
+    final leftStop = stops[s];
+    final rightStop = stops[s + 1];
+
+    final leftColor = colors[s];
+    final rightColor = colors[s + 1];
+
+    if (t <= leftStop) {
+      return leftColor;
+    } else if (t < rightStop) {
+      final sectionT = (t - leftStop) / (rightStop - leftStop);
+      return Color.lerp(leftColor, rightColor, sectionT)!;
+    }
+  }
+  return colors.last;
+}
+
+extension GradientUtils on LinearGradient {
+  List<double> getSafeColorStops() {
+    if (stops != null && stops!.length == colors.length) {
+      return stops!;
+    }
+
+    if (colors.length <= 1) {
+      throw ArgumentError('"colors" must have length > 1.');
+    }
+
+    final step = 1.0 / (colors.length - 1);
+    return List.generate(colors.length, (index) => index * step);
+  }
 }
 
 List<FlSpot> keySpots = [
