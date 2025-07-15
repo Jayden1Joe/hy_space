@@ -23,6 +23,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
     Color.fromARGB(255, 255, 194, 151),
   ];
   double? selectedX;
+  int? selectedY;
   double? chartWidth;
   Offset? selectedPosition;
 
@@ -98,7 +99,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
         return Stack(
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.only(top: 60),
+              padding: const EdgeInsets.only(top: 80), //글자와 그래프 사이 간격
               child: AspectRatio(
                 aspectRatio: 3,
                 child: Padding(
@@ -131,7 +132,11 @@ class _LineChartSample2State extends State<LineChartSample2> {
                         ),
                         Text(
                           remainingTimeText,
-                          style: TextStyle(fontSize: 16, color: Colors.white70),
+                          style: TextStyle(fontSize: 15, color: Colors.white70),
+                        ),
+                        Text(
+                          '밝기 $selectedY',
+                          style: TextStyle(fontSize: 15, color: Colors.white70),
                         ),
                       ],
                     ),
@@ -193,6 +198,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
   LineChartData mainData() {
     return LineChartData(
       lineTouchData: LineTouchData(
+        //터치할때 반응 구현
         touchTooltipData: LineTouchTooltipData(
           getTooltipItems: (touchedSpots) {
             return touchedSpots.map((spot) => null).toList();
@@ -202,14 +208,20 @@ class _LineChartSample2State extends State<LineChartSample2> {
           if (event is FlLongPressEnd ||
               event is FlPanEndEvent ||
               event is FlTapUpEvent) {
+            //터치 안하고 있을땐 Null
             setState(() {
               selectedX = null;
               selectedPosition = null;
             });
           } else if (response != null && response.lineBarSpots != null) {
+            //터치 중일때
             final localPos = event.localPosition;
             setState(() {
-              selectedX = response.lineBarSpots!.first.x;
+              //터치 중인 곳의 값을 넣음
+              selectedX = response.lineBarSpots!.first.x; //x축의 값: 시간
+              selectedY = ((response.lineBarSpots!.first.y - 0.5) * 10)
+                  .toInt()
+                  .clamp(0, 100); //y축의 값: 밝기, 그래프 모양 예쁘게 하려고 0.5 더한거 뺌
               selectedPosition = localPos;
             });
           }
@@ -329,7 +341,7 @@ List<FlSpot> catmullRomInterpolateWithTension(
       double x = _catmullRomTension(t, p0.x, p1.x, p2.x, p3.x, tension);
       double y = _catmullRomTension(t, p0.y, p1.y, p2.y, p3.y, tension);
 
-      result.add(FlSpot(x, y + .6));
+      result.add(FlSpot(x, y + .5)); //선이 굵어서 바닥을 뚫어서 y값을 조금 더해서 그래프 전체를 들어 올림
     }
   }
 
