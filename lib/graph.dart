@@ -26,6 +26,11 @@ class _LineChartSample2State extends State<LineChartSample2> {
   double? chartWidth;
   Offset? selectedPosition;
 
+  TimeOfDay wakeUpTime = TimeOfDay(hour: 7, minute: 30); // 예: 7:30 AM
+  TimeOfDay sleepTime = TimeOfDay(hour: 23, minute: 30); // 예: 11:00 PM
+
+  final now = TimeOfDay.fromDateTime(DateTime.now());
+
   String formatKoreanTime(double x) {
     int hour = x.floor();
     int minute = ((x - hour) * 60).round();
@@ -37,10 +42,50 @@ class _LineChartSample2State extends State<LineChartSample2> {
     return '$period $displayHour:${minute.toString().padLeft(2, '0')}';
   }
 
+  String formatKoreanRemainingTime(double x) {
+    final wakeUpMinutes = wakeUpTime.hour * 60 + wakeUpTime.minute;
+    final sleepMinutes = sleepTime.hour * 60 + sleepTime.minute;
+
+    int totalMinutes = (x * 60).round();
+
+    if (totalMinutes == wakeUpMinutes) {
+      return '기상';
+    }
+    if (totalMinutes == sleepMinutes) {
+      return '취침';
+    }
+
+    if (totalMinutes < wakeUpMinutes || totalMinutes > sleepMinutes) {
+      int diff = wakeUpMinutes - totalMinutes;
+      if (diff < 0) diff += 24 * 60; // 다음날 계산
+      int hours = diff ~/ 60;
+      int minutes = diff % 60;
+      if (hours > 0) {
+        return '기상까지 $hours시간 $minutes분';
+      } else {
+        return '기상까지 $minutes분';
+      }
+    }
+
+    if (totalMinutes > wakeUpMinutes && totalMinutes < sleepMinutes) {
+      int diff = sleepMinutes - totalMinutes;
+      int hours = diff ~/ 60;
+      int minutes = diff % 60;
+      if (hours > 0) {
+        return '취침까지 $hours시간 $minutes분';
+      } else {
+        return '취침까지 $minutes분';
+      }
+    }
+
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final double nowX = DateTime.now().hour + DateTime.now().minute / 60;
     final timeText = formatKoreanTime(selectedX ?? nowX);
+    String remainingTimeText = formatKoreanRemainingTime(selectedX ?? nowX);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -79,8 +124,8 @@ class _LineChartSample2State extends State<LineChartSample2> {
                             color: Colors.white,
                           ),
                         ),
-                        const Text(
-                          '취침까지 4시간 10분',
+                        Text(
+                          remainingTimeText,
                           style: TextStyle(fontSize: 16, color: Colors.white70),
                         ),
                       ],
@@ -99,8 +144,8 @@ class _LineChartSample2State extends State<LineChartSample2> {
                             color: Colors.white,
                           ),
                         ),
-                        const Text(
-                          '취침까지 4시간 10분',
+                        Text(
+                          remainingTimeText,
                           style: TextStyle(fontSize: 16, color: Colors.white70),
                         ),
                       ],
@@ -156,13 +201,20 @@ class _LineChartSample2State extends State<LineChartSample2> {
           },
         ),
         touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
-          if (response == null || response.lineBarSpots == null) return;
-
-          final localPos = event.localPosition;
-          setState(() {
-            selectedX = response.lineBarSpots!.first.x;
-            selectedPosition = localPos;
-          });
+          if (event is FlLongPressEnd ||
+              event is FlPanEndEvent ||
+              event is FlTapUpEvent) {
+            setState(() {
+              selectedX = null;
+              selectedPosition = null;
+            });
+          } else if (response != null && response.lineBarSpots != null) {
+            final localPos = event.localPosition;
+            setState(() {
+              selectedX = response.lineBarSpots!.first.x;
+              selectedPosition = localPos;
+            });
+          }
         },
       ),
       gridData: FlGridData(show: false),
@@ -193,7 +245,6 @@ class _LineChartSample2State extends State<LineChartSample2> {
       lineBarsData: [
         LineChartBarData(
           spots: smoothSpots,
-
           isCurved: true,
           curveSmoothness: 0.2,
           gradient: LinearGradient(colors: gradientColors),
@@ -266,16 +317,25 @@ List<FlSpot> catmullRomInterpolateWithTension(
   return result.where((spot) => spot.x <= 23.9833).toList();
 }
 
-List<FlSpot> keySpots = [
-  FlSpot(0, 2),
-  FlSpot(1, 0),
-  FlSpot(6, 0),
-  FlSpot(7, 2),
-  FlSpot(7.5, 7),
-  FlSpot(10, 9),
-  FlSpot(13, 10),
-  FlSpot(21, 4),
-  FlSpot(24, 2),
+List<Map<String, double>> keyPoints = [
+  {'hour': 0, 'minute': 0, 'value': 2},
+  {'hour': 1, 'minute': 0, 'value': 0},
+  {'hour': 6, 'minute': 0, 'value': 0},
+  {'hour': 7, 'minute': 0, 'value': 2},
+  {'hour': 7, 'minute': 30, 'value': 7},
+  {'hour': 10, 'minute': 0, 'value': 9},
+  {'hour': 13, 'minute': 0, 'value': 10},
+  {'hour': 21, 'minute': 0, 'value': 4},
+  {'hour': 24, 'minute': 0, 'value': 2},
 ];
 
-List<FlSpot> smoothSpots = catmullRomInterpolateWithTension(keySpots);
+List<FlSpot> convertToFlSpots(List<Map<String, dynamic>> points) {
+  return points.map((point) {
+    final double x = point['hour'] + (point['minute'] / 60.0);
+    return FlSpot(x, point['value']);
+  }).toList();
+}
+
+List<FlSpot> smoothSpots = catmullRomInterpolateWithTension(
+  convertToFlSpots(keyPoints),
+);
