@@ -149,22 +149,14 @@ class _LineChartSample2State extends State<LineChartSample2> {
                                     left: dx - 20,
                                     top:
                                         dy -
-                                        88, // Adjusted for better alignment and to avoid clipping
+                                        72, // Adjusted for better alignment and to avoid clipping
                                     child: Column(
                                       children: [
                                         Text(
                                           '${cp.hour}:${cp.minute.toString().padLeft(2, '0')}',
                                           style: const TextStyle(
                                             color: AppColors.mainTextColor1,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Text(
-                                          '${cp.kelvin}K',
-                                          style: const TextStyle(
-                                            color: AppColors.mainTextColor1,
-                                            fontSize: 11,
+                                            fontSize: 13,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
