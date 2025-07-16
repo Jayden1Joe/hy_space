@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:hy_space/models/color_point.dart';
+import 'package:hy_space/resources/colors.dart';
 
 class LineChartSample2 extends StatefulWidget {
   const LineChartSample2({super.key});
@@ -106,7 +107,10 @@ class _LineChartSample2State extends State<LineChartSample2> {
       builder: (context, constraints) {
         chartWidth = constraints.maxWidth;
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+          ), // Ensure consistent horizontal padding
           child: Stack(
             children: <Widget>[
               Padding(
@@ -114,6 +118,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
                 child: AspectRatio(
                   aspectRatio: 3.3,
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       LineChart(mainData()),
                       if (!isBrightnessMode)
@@ -121,6 +126,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
                           child: LayoutBuilder(
                             builder: (context, constraints) {
                               return Stack(
+                                clipBehavior: Clip.none,
                                 children: colorPoints.map((cp) {
                                   final dx =
                                       (cp.totalMinutes / 60) /
@@ -136,37 +142,39 @@ class _LineChartSample2State extends State<LineChartSample2> {
                                   );
 
                                   final dy =
-                                      (1 - spot.y / 13) * constraints.maxHeight;
+                                      (1 - spot.y / 16.7) *
+                                      constraints.maxHeight;
 
                                   return Positioned(
                                     left: dx - 20,
-                                    top: dy - 100,
+                                    top:
+                                        dy -
+                                        88, // Adjusted for better alignment and to avoid clipping
                                     child: Column(
                                       children: [
                                         Text(
                                           '${cp.hour}:${cp.minute.toString().padLeft(2, '0')}',
                                           style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
+                                            color: AppColors.mainTextColor1,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
                                           '${cp.kelvin}K',
                                           style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
+                                            color: AppColors.mainTextColor1,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Container(
                                           margin: const EdgeInsets.only(top: 4),
-                                          width: 20,
-                                          height: 20,
+                                          width: 13,
+                                          height: 13,
                                           decoration: BoxDecoration(
                                             color: cp.color,
                                             shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.white70,
-                                            ),
                                           ),
                                         ),
                                       ],
