@@ -1,6 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:hy_space/models/color_point.dart';
 import 'package:hy_space/resources/colors.dart';
+import 'package:hy_space/utils/get_color_for_kelvin.dart';
 
 class LineChartSample2 extends StatefulWidget {
   const LineChartSample2({super.key});
@@ -18,18 +20,18 @@ class _LineChartSample2State extends State<LineChartSample2> {
   //색온도 2000K-8000K까지 미리 지정해놓고 그 사이는 자연스럽게 gradiant되게 로직짜기
   //일단 고민할 부분은 어떻게 컨트롤러에 넘겨줄 것인가
 
-  List<Color> gradientColors = [
-    Color.fromARGB(255, 255, 194, 151),
-    Color.fromARGB(255, 255, 194, 151),
-    Color.fromARGB(255, 255, 194, 151),
-    Color(0xFFADD8FF),
-    Color(0xFFE0ECFF),
-    Color(0xFFE0ECFF),
-    Color(0xFFFFFFFF),
-    Color(0xFFFFF4E5),
-    Color.fromARGB(255, 255, 204, 167),
-    Color.fromARGB(255, 255, 194, 151),
-  ];
+  late final LinearGradient mainGradient;
+  late final LinearGradient underBarGradient;
+
+  @override
+  void initState() {
+    super.initState();
+    mainGradient = kelvinGradient.generateGradient();
+    underBarGradient = kelvinGradient.generateGradientWithOpacity(0.25);
+  }
+
+  final kelvinGradient = CustomKelvinGradient(colorPoints);
+
   double? selectedX;
   int? selectedY;
   double? chartWidth;
@@ -298,16 +300,12 @@ class _LineChartSample2State extends State<LineChartSample2> {
           }
         },
         getTouchedSpotIndicator: (barData, spotIndexes) {
-          final LinearGradient? gradient = barData.gradient is LinearGradient
-              ? barData.gradient as LinearGradient
-              : null;
-          final colorStops = gradient?.getSafeColorStops();
+          final gradient = kelvinGradient.generateGradient();
+          final colorStops = gradient.getSafeColorStops();
           return spotIndexes.map((index) {
             final spot = barData.spots[index];
             final t = spot.x / 24.0; // Normalize to 0~1 for full day
-            final gradientColor = gradient != null && colorStops != null
-                ? lerpGradient(gradient.colors, colorStops, t)
-                : gradientColors.first;
+            final gradientColor = lerpGradient(gradient.colors, colorStops, t);
 
             return TouchedSpotIndicatorData(
               FlLine(color: gradientColor.withOpacity(0.8), strokeWidth: 3.5),
@@ -333,17 +331,15 @@ class _LineChartSample2State extends State<LineChartSample2> {
           ? [
               LineChartBarData(
                 spots: smoothSpots,
-                gradient: LinearGradient(colors: gradientColors),
+                isCurved: true,
+                curveSmoothness: 0.2,
+                gradient: mainGradient,
                 barWidth: 4,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
                 belowBarData: BarAreaData(
                   show: true,
-                  gradient: LinearGradient(
-                    colors: gradientColors
-                        .map((color) => color.withValues(alpha: 0.25))
-                        .toList(),
-                  ),
+                  gradient: underBarGradient,
                 ),
               ),
             ]
