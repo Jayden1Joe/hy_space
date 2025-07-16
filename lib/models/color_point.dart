@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hy_space/utils/get_color_for_kelvin.dart';
 
 final colorPoints = [
-  ColorPoint(6, 0, 2000),
-  ColorPoint(7, 30, 8000),
-  ColorPoint(23, 30, 2000),
+  ColorPoint(3, 0, 2000),
+  ColorPoint(11, 0, 2000),
+  ColorPoint(13, 30, 8000),
+  ColorPoint(23, 30, 8000),
 ];
 
 class ColorPoint {
@@ -58,6 +59,35 @@ class CustomKelvinGradient {
     final sortedPoints = [...colorPoints]
       ..sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
 
+    // 1.1 00:00과 23:59가 없으면 추가
+    final first = sortedPoints.first; // 7,30,2000
+    final last = sortedPoints.last; //23,30,8000
+
+    final firstStop = first.totalMinutes / 1440; //0.3
+    final lastStop = last.totalMinutes / 1440; //0.95
+
+    if (first.kelvin != last.kelvin) {
+      //서로 캘빈이 다르면 중간 색을 찾아서 처음과 끝에 넣어줌
+      int middleKelvin = 5000;
+      final ratio =
+          (1.0 - lastStop) / ((1.0 - lastStop) + firstStop); // 0.05 0.5
+      if (last.kelvin > first.kelvin) {
+        middleKelvin =
+            last.kelvin - ((last.kelvin - first.kelvin) * ratio).toInt();
+      } else if (first.kelvin > last.kelvin) {
+        middleKelvin =
+            last.kelvin + ((first.kelvin - last.kelvin) * ratio).toInt(); //0.05
+      }
+
+      if (first.totalMinutes != 0) {
+        sortedPoints.insert(0, ColorPoint(0, 0, middleKelvin));
+      }
+
+      if (last.totalMinutes != 1439) {
+        sortedPoints.add(ColorPoint(23, 59, middleKelvin));
+      }
+    }
+
     final List<Color> gradientColors = [];
     final List<double> gradientStops = [];
 
@@ -87,26 +117,6 @@ class CustomKelvinGradient {
           gradientStops.add(interpPos);
           gradientColors.add(lerpKelvinColor(interpKelvin));
         }
-      }
-    }
-
-    // Wrap-around from last to first (simulate 24h loop)
-    if (sortedPoints.length >= 2) {
-      final last = sortedPoints.last;
-      final first = sortedPoints.first;
-
-      final startMin = last.totalMinutes;
-      final endMin = first.totalMinutes + 1440;
-
-      const int steps = 4;
-      for (int step = 1; step < steps; step++) {
-        final interpMin = startMin + (endMin - startMin) * (step / steps);
-        final interpPos = interpMin / 1440;
-
-        final interpKelvin =
-            last.kelvin + (first.kelvin - last.kelvin) * (step / steps);
-        gradientStops.add(interpPos % 1); // normalize back to 0~1
-        gradientColors.add(lerpKelvinColor(interpKelvin.toDouble()));
       }
     }
 
