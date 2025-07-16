@@ -10,6 +10,14 @@ class LineChartSample2 extends StatefulWidget {
 }
 
 class _LineChartSample2State extends State<LineChartSample2> {
+  //기본 로직 취침시 2000K 0% 키면 30% 취침 3시간전 4000K 50%
+  //기상 1시간전 2000K 밝기 20% 30분전 6000K 밝기 50% 기상시 8000K 밝기 70%
+  //기상과 취침시간을 편집해서 자동으로 밝기, 색온도 그래프가 그려지게 하기.
+  //요일별로 다르게하기
+  //0부터 1439까지 정확하게 모든 부분을 그래프로 찍기 -> 성능하락시 직접 그래프 코딩 및 곡선 보간로직
+  //색온도 2000K-8000K까지 미리 지정해놓고 그 사이는 자연스럽게 gradiant되게 로직짜기
+  //일단 고민할 부분은 어떻게 컨트롤러에 넘겨줄 것인가
+
   List<Color> gradientColors = [
     Color.fromARGB(255, 255, 194, 151),
     Color.fromARGB(255, 255, 194, 151),
@@ -26,6 +34,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
   int? selectedY;
   double? chartWidth;
   Offset? selectedPosition;
+  bool isBrightnessMode = true;
 
   TimeOfDay wakeUpTime = TimeOfDay(hour: 7, minute: 30); // 예: 7:30 AM
   TimeOfDay sleepTime = TimeOfDay(hour: 23, minute: 30); // 예: 11:00 PM
@@ -96,72 +105,123 @@ class _LineChartSample2State extends State<LineChartSample2> {
     return LayoutBuilder(
       builder: (context, constraints) {
         chartWidth = constraints.maxWidth;
-        return Stack(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 80), //글자와 그래프 사이 간격
-              child: AspectRatio(
-                aspectRatio: 3,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    right: 10,
-                    left: 10,
-                    top: 16,
-                    bottom: 0,
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Stack(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 96), //글자와 그래프 사이 간격
+                child: AspectRatio(
+                  aspectRatio: 3.3,
+                  child: Stack(
+                    children: [
+                      LineChart(mainData()),
+                      if (!isBrightnessMode)
+                        Positioned(
+                          child: SizedBox(
+                            height: 48,
+                            child: Row(
+                              children: List.generate(10, (index) {
+                                final t = index / 9;
+                                final color = Color.lerp(
+                                  const Color(0xFFFFCC99), // 2000K-ish
+                                  const Color(0xFFBFE0FF), // 8000K-ish
+                                  t,
+                                )!;
+                                final height = 20.0;
+                                return Expanded(
+                                  child: Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Container(
+                                      width: 35,
+                                      height: height,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(4),
+                                        color: color,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  child: Container(child: LineChart(mainData())),
                 ),
               ),
-            ),
-            (selectedX != null && selectedPosition != null)
-                ? Positioned(
-                    top: 16,
-                    left: (selectedPosition!.dx - 60).clamp(
-                      15,
-                      chartWidth! - 150,
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          timeText,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+              (selectedX != null && selectedPosition != null)
+                  ? Positioned(
+                      top: 16,
+                      left: (selectedPosition!.dx - 70).clamp(
+                        0,
+                        chartWidth! - 180,
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            timeText,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(222, 255, 255, 255),
+                            ),
                           ),
-                        ),
-                        Text(
-                          remainingTimeText,
-                          style: TextStyle(fontSize: 15, color: Colors.white70),
-                        ),
-                        Text(
-                          '밝기 $selectedY',
-                          style: TextStyle(fontSize: 15, color: Colors.white70),
-                        ),
-                      ],
-                    ),
-                  )
-                : Positioned(
-                    top: 16,
-                    left: 15,
-                    child: Column(
-                      children: [
-                        Text(
-                          timeText,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                          Text(
+                            remainingTimeText,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.white70,
+                            ),
                           ),
-                        ),
-                        Text(
-                          remainingTimeText,
-                          style: TextStyle(fontSize: 16, color: Colors.white70),
-                        ),
-                      ],
+                          Text(
+                            '밝기 $selectedY%',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Positioned(
+                      top: 16,
+                      child: Column(
+                        children: [
+                          Text(
+                            timeText,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(222, 255, 255, 255),
+                            ),
+                          ),
+                          Text(
+                            remainingTimeText,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+              if (selectedX == null && selectedPosition == null)
+                Positioned(
+                  right: 0,
+                  top: 14,
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        isBrightnessMode = !isBrightnessMode;
+                      });
+                    },
+                    icon: Icon(Icons.autorenew),
+                    iconSize: 28,
                   ),
-          ],
+                ),
+            ],
+          ),
         );
       },
     );
@@ -177,22 +237,33 @@ class _LineChartSample2State extends State<LineChartSample2> {
     switch (value.toInt()) {
       case 2:
         text = const Text('오전 12시 ', style: style);
-        break;
       case 8:
         text = const Text('오전 6시  ', style: style);
-        break;
       case 14:
         text = const Text('오후 12시 ', style: style);
-        break;
       case 20:
         text = const Text('오후 6시  ', style: style);
-        break;
       default:
         text = const Text('');
-        break;
     }
 
     return SideTitleWidget(meta: meta, child: text);
+  }
+
+  titleWidgets() {
+    return FlTitlesData(
+      bottomTitles: AxisTitles(
+        sideTitles: SideTitles(
+          showTitles: true,
+          reservedSize: 25,
+          interval: 1,
+          getTitlesWidget: bottomTitleWidgets,
+        ),
+      ),
+      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    );
   }
 
   LineChartData mainData() {
@@ -249,22 +320,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
         },
       ),
       gridData: FlGridData(show: false),
-      titlesData: FlTitlesData(
-        show: true,
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 25,
-            interval: 1,
-            getTitlesWidget: bottomTitleWidgets,
-          ),
-        ),
-        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
+      titlesData: titleWidgets(),
       borderData: FlBorderData(
         show: false,
         border: Border.all(color: const Color(0xff37434d)),
@@ -273,25 +329,25 @@ class _LineChartSample2State extends State<LineChartSample2> {
       maxX: 24,
       minY: 0,
       maxY: 13,
-      lineBarsData: [
-        LineChartBarData(
-          spots: smoothSpots,
-          isCurved: true,
-          curveSmoothness: 0.2,
-          gradient: LinearGradient(colors: gradientColors),
-          barWidth: 4,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
-          belowBarData: BarAreaData(
-            show: true,
-            gradient: LinearGradient(
-              colors: gradientColors
-                  .map((color) => color.withValues(alpha: 0.25))
-                  .toList(),
-            ),
-          ),
-        ),
-      ],
+      lineBarsData: isBrightnessMode == true
+          ? [
+              LineChartBarData(
+                spots: smoothSpots,
+                gradient: LinearGradient(colors: gradientColors),
+                barWidth: 4,
+                isStrokeCapRound: true,
+                dotData: const FlDotData(show: false),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    colors: gradientColors
+                        .map((color) => color.withValues(alpha: 0.25))
+                        .toList(),
+                  ),
+                ),
+              ),
+            ]
+          : [],
     );
   }
 }
@@ -387,7 +443,7 @@ extension GradientUtils on LinearGradient {
 }
 
 List<FlSpot> keySpots = [
-  FlSpot(0, 2),
+  FlSpot(0, 0),
   FlSpot(1, 0),
   FlSpot(6, 0),
   FlSpot(7, 2),
@@ -395,7 +451,7 @@ List<FlSpot> keySpots = [
   FlSpot(10, 9),
   FlSpot(13, 10),
   FlSpot(21, 4),
-  FlSpot(24, 2),
+  FlSpot(24, 0),
 ];
 
 List<FlSpot> smoothSpots = catmullRomInterpolateWithTension(keySpots);
