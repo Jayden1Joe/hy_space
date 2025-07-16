@@ -17,4 +17,16 @@ class ColorPoint {
   int get totalMinutes => hour * 60 + minute;
 
   Color get color => getColorForKelvin(kelvin);
+
+  static List<Color> toGradientColors(List<ColorPoint> points) {
+    final sorted = [...points]
+      ..sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
+    return sorted.map((p) => p.color).toList();
+  }
+
+  static List<double> toGradientStops(List<ColorPoint> points) {
+    final sorted = [...points]
+      ..sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
+    return sorted.map((p) => p.totalMinutes / 1440).toList();
+  }
 }

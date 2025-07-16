@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:hy_space/models/color_point.dart';
 import 'package:hy_space/resources/colors.dart';
 
 class LineChartSample2 extends StatefulWidget {
@@ -278,7 +279,10 @@ class _LineChartSample2State extends State<LineChartSample2> {
           spots: smoothSpots,
           isCurved: true,
           curveSmoothness: 0.2,
-          gradient: LinearGradient(colors: gradientColors),
+          gradient: LinearGradient(
+            colors: ColorPoint.toGradientColors(colorPoints),
+            stops: ColorPoint.toGradientStops(colorPoints),
+          ),
           barWidth: 4,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
