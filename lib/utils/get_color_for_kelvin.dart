@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-Color getColorForKelvin(int kelvin) {
-  const Map<int, Color> kelvinMap = {
-    2000: Color.fromRGBO(255, 167, 108, 1), // 촛불색
-    4000: Color.fromRGBO(255, 245, 206, 1), // 주백색 웜 화이트
-    5000: Color.fromARGB(255, 242, 245, 255), //주광색 가장 자연광에 가까운 색
-    6000: Color.fromARGB(255, 199, 224, 255), // 시원한 주광색
-    8000: Color.fromARGB(255, 159, 191, 255), // 찬 푸른빛
-  };
+const Map<int, Color> kelvinMap = {
+  2000: Color.fromRGBO(255, 167, 108, 1), // 촛불색
+  4000: Color.fromRGBO(255, 245, 206, 1), // 주백색 웜 화이트
+  5000: Color.fromARGB(255, 242, 245, 255), // 주광색 쿨 화이트 가장 자연광에 가까운 색
+  6000: Color.fromARGB(255, 199, 224, 255), // 시원한 주광색
+  8000: Color.fromARGB(255, 159, 191, 255), // 찬 푸른빛
+};
 
+Color getColorForKelvin(int kelvin) {
   if (kelvin <= 2000) return kelvinMap[2000]!;
   if (kelvin >= 8000) return kelvinMap[8000]!;
 

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-Color getColorForKelvin(int kelvin) {
-  const Map<int, Color> kelvinMap = {
-    2000: Color.fromARGB(255, 255, 187, 120),
-    4000: Color.fromARGB(255, 255, 223, 189),
-    5000: Color.fromARGB(255, 240, 232, 219),
-    6000: Color.fromRGBO(203, 227, 255, 1),
-    8000: Color.fromARGB(255, 169, 198, 255),
-  };
+const Map<int, Color> kelvinMap = {
+  2000: Color.fromARGB(255, 255, 187, 120),
+  4000: Color.fromARGB(255, 255, 223, 189),
+  5000: Color.fromARGB(255, 240, 232, 219),
+  6000: Color.fromRGBO(203, 227, 255, 1),
+  8000: Color.fromARGB(255, 169, 198, 255),
+};
 
+Color getColorForKelvin(int kelvin) {
   if (kelvin <= 2000) return kelvinMap[2000]!;
   if (kelvin >= 8000) return kelvinMap[8000]!;
 

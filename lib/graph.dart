@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:hy_space/models/color_point.dart';
 import 'package:hy_space/resources/colors.dart';
+import 'package:hy_space/utils/get_color_for_kelvin.dart';
 
 class LineChartSample2 extends StatefulWidget {
   const LineChartSample2({super.key});
@@ -23,6 +24,9 @@ class _LineChartSample2State extends State<LineChartSample2> {
     Color.fromARGB(255, 255, 204, 167),
     Color.fromARGB(255, 255, 194, 151),
   ];
+
+  final kelvinGradient = CustomKelvinGradient(colorPoints);
+
   double? selectedX;
   int? selectedY;
   double? chartWidth;
@@ -279,20 +283,17 @@ class _LineChartSample2State extends State<LineChartSample2> {
           spots: smoothSpots,
           isCurved: true,
           curveSmoothness: 0.2,
-          gradient: LinearGradient(
-            colors: ColorPoint.toGradientColors(colorPoints),
-            stops: ColorPoint.toGradientStops(colorPoints),
-          ),
+          gradient: kelvinGradient.generateGradient(),
+          // gradient: LinearGradient(
+          //   colors: ColorPoint.toGradientColors(colorPoints),
+          //   stops: ColorPoint.toGradientStops(colorPoints),
+          // ),
           barWidth: 4,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            gradient: LinearGradient(
-              colors: gradientColors
-                  .map((color) => color.withValues(alpha: 0.25))
-                  .toList(),
-            ),
+            gradient: kelvinGradient.generateGradientWithOpacity(0.25),
           ),
         ),
       ],
