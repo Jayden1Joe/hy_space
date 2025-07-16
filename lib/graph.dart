@@ -12,6 +12,16 @@ class LineChartSample2 extends StatefulWidget {
 }
 
 class _LineChartSample2State extends State<LineChartSample2> {
+  late final LinearGradient mainGradient;
+  late final LinearGradient underBarGradient;
+
+  @override
+  void initState() {
+    super.initState();
+    mainGradient = kelvinGradient.generateGradient();
+    underBarGradient = kelvinGradient.generateGradientWithOpacity(0.25);
+  }
+
   List<Color> gradientColors = [
     Color.fromARGB(255, 255, 194, 151),
     Color.fromARGB(255, 255, 194, 151),
@@ -232,16 +242,12 @@ class _LineChartSample2State extends State<LineChartSample2> {
           }
         },
         getTouchedSpotIndicator: (barData, spotIndexes) {
-          final LinearGradient? gradient = barData.gradient is LinearGradient
-              ? barData.gradient as LinearGradient
-              : null;
-          final colorStops = gradient?.getSafeColorStops();
+          final gradient = kelvinGradient.generateGradient();
+          final colorStops = gradient.getSafeColorStops();
           return spotIndexes.map((index) {
             final spot = barData.spots[index];
             final t = spot.x / 24.0; // Normalize to 0~1 for full day
-            final gradientColor = gradient != null && colorStops != null
-                ? lerpGradient(gradient.colors, colorStops, t)
-                : gradientColors.first;
+            final gradientColor = lerpGradient(gradient.colors, colorStops, t);
 
             return TouchedSpotIndicatorData(
               FlLine(color: gradientColor.withOpacity(0.8), strokeWidth: 3.5),
@@ -283,18 +289,11 @@ class _LineChartSample2State extends State<LineChartSample2> {
           spots: smoothSpots,
           isCurved: true,
           curveSmoothness: 0.2,
-          gradient: kelvinGradient.generateGradient(),
-          // gradient: LinearGradient(
-          //   colors: ColorPoint.toGradientColors(colorPoints),
-          //   stops: ColorPoint.toGradientStops(colorPoints),
-          // ),
+          gradient: mainGradient,
           barWidth: 4,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
-          belowBarData: BarAreaData(
-            show: true,
-            gradient: kelvinGradient.generateGradientWithOpacity(0.25),
-          ),
+          belowBarData: BarAreaData(show: true, gradient: underBarGradient),
         ),
       ],
     );
