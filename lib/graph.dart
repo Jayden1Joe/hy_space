@@ -147,29 +147,75 @@ class _LineChartSample2State extends State<LineChartSample2> {
 
                                   return Positioned(
                                     left: dx - 20,
-                                    top:
-                                        dy -
-                                        72, // Adjusted for better alignment and to avoid clipping
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          '${cp.hour}:${cp.minute.toString().padLeft(2, '0')}',
-                                          style: const TextStyle(
-                                            color: AppColors.mainTextColor1,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
+                                    top: dy - 72,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        final newKelvin = await showDialog<int>(
+                                          context: context,
+                                          builder: (_) {
+                                            final controller =
+                                                TextEditingController();
+                                            return AlertDialog(
+                                              title: const Text("색온도 변경"),
+                                              content: TextField(
+                                                controller: controller,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration:
+                                                    const InputDecoration(
+                                                      hintText: '예: 6000',
+                                                    ),
+                                                onSubmitted: (value) {
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pop(int.tryParse(value));
+                                                },
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop(
+                                                      int.tryParse(
+                                                        controller.text,
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: const Text("확인"),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+
+                                        if (newKelvin != null) {
+                                          setState(() {
+                                            cp.kelvin = newKelvin;
+                                          });
+                                        }
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            '${cp.hour}:${cp.minute.toString().padLeft(2, '0')}',
+                                            style: const TextStyle(
+                                              color: AppColors.mainTextColor1,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                        Container(
-                                          margin: const EdgeInsets.only(top: 4),
-                                          width: 13,
-                                          height: 13,
-                                          decoration: BoxDecoration(
-                                            color: cp.color,
-                                            shape: BoxShape.circle,
+                                          Container(
+                                            margin: const EdgeInsets.only(
+                                              top: 4,
+                                            ),
+                                            width: 13,
+                                            height: 13,
+                                            decoration: BoxDecoration(
+                                              color: cp.color,
+                                              shape: BoxShape.circle,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   );
                                 }).toList(),

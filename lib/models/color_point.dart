@@ -10,9 +10,9 @@ final colorPoints = [
 class ColorPoint {
   final int hour;
   final int minute;
-  final int kelvin;
+  int kelvin;
 
-  const ColorPoint(this.hour, this.minute, this.kelvin);
+  ColorPoint(this.hour, this.minute, this.kelvin);
 
   int get totalMinutes => hour * 60 + minute;
 
