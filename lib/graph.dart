@@ -19,14 +19,42 @@ class _LineChartSample2State extends State<LineChartSample2> {
   //색온도 2000K-8000K까지 미리 지정해놓고 그 사이는 자연스럽게 gradiant되게 로직짜기
   //일단 고민할 부분은 어떻게 컨트롤러에 넘겨줄 것인가
 
-  late final LinearGradient mainGradient;
-  late final LinearGradient underBarGradient;
+  // Separate caching for mainGradient and underBarGradient to avoid shared cache issues
+  LinearGradient? _mainGradientCache;
+  LinearGradient? _underBarGradientCache;
+  List<int>? _cachedKelvinsMain;
+  List<int>? _cachedKelvinsUnder;
 
-  @override
-  void initState() {
-    super.initState();
-    mainGradient = kelvinGradient.generateGradient();
-    underBarGradient = kelvinGradient.generateGradientWithOpacity(0.25);
+  LinearGradient get mainGradient {
+    final currentKelvins = colorPoints.map((cp) => cp.kelvin).toList();
+
+    if (_cachedKelvinsMain == null ||
+        !_listEquals(_cachedKelvinsMain!, currentKelvins)) {
+      _cachedKelvinsMain = currentKelvins;
+      _mainGradientCache = kelvinGradient.generateGradient();
+    }
+
+    return _mainGradientCache!;
+  }
+
+  LinearGradient get underBarGradient {
+    final currentKelvins = colorPoints.map((cp) => cp.kelvin).toList();
+
+    if (_cachedKelvinsUnder == null ||
+        !_listEquals(_cachedKelvinsUnder!, currentKelvins)) {
+      _cachedKelvinsUnder = currentKelvins;
+      _underBarGradientCache = kelvinGradient.generateGradientWithOpacity(0.25);
+    }
+
+    return _underBarGradientCache!;
+  }
+
+  bool _listEquals(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   final kelvinGradient = CustomKelvinGradient(colorPoints);
