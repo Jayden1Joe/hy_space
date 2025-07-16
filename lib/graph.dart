@@ -22,19 +22,6 @@ class _LineChartSample2State extends State<LineChartSample2> {
     underBarGradient = kelvinGradient.generateGradientWithOpacity(0.25);
   }
 
-  List<Color> gradientColors = [
-    Color.fromARGB(255, 255, 194, 151),
-    Color.fromARGB(255, 255, 194, 151),
-    Color.fromARGB(255, 255, 194, 151),
-    Color(0xFFADD8FF),
-    Color(0xFFE0ECFF),
-    Color(0xFFE0ECFF),
-    Color(0xFFFFFFFF),
-    Color(0xFFFFF4E5),
-    Color.fromARGB(255, 255, 204, 167),
-    Color.fromARGB(255, 255, 194, 151),
-  ];
-
   final kelvinGradient = CustomKelvinGradient(colorPoints);
 
   double? selectedX;
