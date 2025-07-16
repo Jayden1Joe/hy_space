@@ -1,8 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:hy_space/models/color_point.dart';
-import 'package:hy_space/resources/colors.dart';
-import 'package:hy_space/utils/get_color_for_kelvin.dart';
 
 class LineChartSample2 extends StatefulWidget {
   const LineChartSample2({super.key});
@@ -119,33 +117,64 @@ class _LineChartSample2State extends State<LineChartSample2> {
                     children: [
                       LineChart(mainData()),
                       if (!isBrightnessMode)
-                        Positioned(
-                          child: SizedBox(
-                            height: 48,
-                            child: Row(
-                              children: List.generate(10, (index) {
-                                final t = index / 9;
-                                final color = Color.lerp(
-                                  const Color(0xFFFFCC99), // 2000K-ish
-                                  const Color(0xFFBFE0FF), // 8000K-ish
-                                  t,
-                                )!;
-                                final height = 20.0;
-                                return Expanded(
-                                  child: Align(
-                                    alignment: Alignment.bottomCenter,
-                                    child: Container(
-                                      width: 35,
-                                      height: height,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(4),
-                                        color: color,
-                                      ),
+                        Positioned.fill(
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return Stack(
+                                children: colorPoints.map((cp) {
+                                  final dx =
+                                      (cp.totalMinutes / 60) /
+                                      24 *
+                                      constraints.maxWidth;
+
+                                  final spot = smoothSpots.firstWhere(
+                                    (s) =>
+                                        (s.x - cp.totalMinutes / 60).abs() <
+                                        0.01,
+                                    orElse: () =>
+                                        FlSpot(cp.totalMinutes / 60, 0),
+                                  );
+
+                                  final dy =
+                                      (1 - spot.y / 13) * constraints.maxHeight;
+
+                                  return Positioned(
+                                    left: dx - 20,
+                                    top: dy - 100,
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          '${cp.hour}:${cp.minute.toString().padLeft(2, '0')}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${cp.kelvin}K',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 4),
+                                          width: 20,
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                            color: cp.color,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                );
-                              }),
-                            ),
+                                  );
+                                }).toList(),
+                              );
+                            },
                           ),
                         ),
                     ],
@@ -218,7 +247,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
                         isBrightnessMode = !isBrightnessMode;
                       });
                     },
-                    icon: Icon(Icons.autorenew),
+                    icon: Icon(Icons.brush),
                     iconSize: 28,
                   ),
                 ),
@@ -327,23 +356,18 @@ class _LineChartSample2State extends State<LineChartSample2> {
       maxX: 24,
       minY: 0,
       maxY: 13,
-      lineBarsData: isBrightnessMode == true
-          ? [
-              LineChartBarData(
-                spots: smoothSpots,
-                isCurved: true,
-                curveSmoothness: 0.2,
-                gradient: mainGradient,
-                barWidth: 4,
-                isStrokeCapRound: true,
-                dotData: const FlDotData(show: false),
-                belowBarData: BarAreaData(
-                  show: true,
-                  gradient: underBarGradient,
-                ),
-              ),
-            ]
-          : [],
+      lineBarsData: [
+        LineChartBarData(
+          spots: smoothSpots,
+          isCurved: true,
+          curveSmoothness: 0.2,
+          gradient: mainGradient,
+          barWidth: 4,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(show: true, gradient: underBarGradient),
+        ),
+      ],
     );
   }
 }
