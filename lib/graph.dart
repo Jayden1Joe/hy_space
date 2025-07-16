@@ -189,62 +189,52 @@ class _LineChartSample2State extends State<LineChartSample2> {
                   ),
                 ),
               ),
-              (selectedX != null && selectedPosition != null)
-                  ? Positioned(
-                      top: 16,
-                      left: (selectedPosition!.dx - 70).clamp(
-                        0,
-                        chartWidth! - 180,
+              if (selectedX != null && selectedPosition != null)
+                Positioned(
+                  top: 16,
+                  left: (selectedPosition!.dx - 70).clamp(0, chartWidth! - 180),
+                  child: Column(
+                    children: [
+                      Text(
+                        timeText,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(222, 255, 255, 255),
+                        ),
                       ),
-                      child: Column(
-                        children: [
-                          Text(
-                            timeText,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(222, 255, 255, 255),
-                            ),
-                          ),
-                          Text(
-                            remainingTimeText,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          Text(
-                            '밝기 $selectedY%',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        remainingTimeText,
+                        style: TextStyle(fontSize: 15, color: Colors.white70),
                       ),
-                    )
-                  : Positioned(
-                      top: 16,
-                      child: Column(
-                        children: [
-                          Text(
-                            timeText,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(222, 255, 255, 255),
-                            ),
-                          ),
-                          Text(
-                            remainingTimeText,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '밝기 $selectedY%',
+                        style: TextStyle(fontSize: 15, color: Colors.white70),
                       ),
-                    ),
+                    ],
+                  ),
+                ),
+              if (isBrightnessMode &&
+                  (selectedX == null && selectedPosition == null))
+                Positioned(
+                  top: 16,
+                  child: Column(
+                    children: [
+                      Text(
+                        timeText,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(222, 255, 255, 255),
+                        ),
+                      ),
+                      Text(
+                        remainingTimeText,
+                        style: TextStyle(fontSize: 16, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
               if (selectedX == null && selectedPosition == null)
                 Positioned(
                   right: 0,
