@@ -64,7 +64,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
   int? selectedY;
   double? chartWidth;
   Offset? selectedPosition;
-  bool isBrightnessMode = true;
+  bool isColorChanging = false;
 
   TimeOfDay wakeUpTime = TimeOfDay(hour: 7, minute: 30); // 예: 7:30 AM
   TimeOfDay sleepTime = TimeOfDay(hour: 23, minute: 30); // 예: 11:00 PM
@@ -147,16 +147,16 @@ class _LineChartSample2State extends State<LineChartSample2> {
                 child: AspectRatio(
                   aspectRatio: 3.3,
                   child: Stack(
-                    clipBehavior: Clip.none,
                     children: [
-                      LineChart(mainData()),
-                      if (!isBrightnessMode)
+                      LineChart(mainData()), //그래프
+                      if (isColorChanging) // 색온도 변경시 점 위젯, 알람 위젯
                         Positioned.fill(
                           child: LayoutBuilder(
                             builder: (context, constraints) {
                               return Stack(
                                 clipBehavior: Clip.none,
                                 children: colorPoints.map((cp) {
+                                  //클릭하면 알람이 뜨는 색 표시 점들을 List로 만듦
                                   final dx =
                                       (cp.totalMinutes / 60) /
                                       24 *
@@ -175,9 +175,11 @@ class _LineChartSample2State extends State<LineChartSample2> {
                                       constraints.maxHeight;
 
                                   return Positioned(
+                                    //점 위젯
                                     left: dx - 20,
-                                    top: dy - 72,
+                                    top: dy - 69,
                                     child: GestureDetector(
+                                      //터치시 반응
                                       onTap: () async {
                                         final newKelvin = await showDialog<int>(
                                           context: context,
@@ -185,15 +187,15 @@ class _LineChartSample2State extends State<LineChartSample2> {
                                             final controller =
                                                 TextEditingController();
                                             return AlertDialog(
+                                              //색온도 변경 알람
                                               title: const Text("색온도 변경"),
                                               content: TextField(
                                                 controller: controller,
                                                 keyboardType:
                                                     TextInputType.number,
-                                                decoration:
-                                                    const InputDecoration(
-                                                      hintText: '예: 6000',
-                                                    ),
+                                                decoration: InputDecoration(
+                                                  hintText: '${cp.kelvin}',
+                                                ),
                                                 onSubmitted: (value) {
                                                   Navigator.of(
                                                     context,
@@ -201,6 +203,7 @@ class _LineChartSample2State extends State<LineChartSample2> {
                                                 },
                                               ),
                                               actions: [
+                                                //확인 버튼
                                                 TextButton(
                                                   onPressed: () {
                                                     Navigator.of(context).pop(
@@ -217,14 +220,17 @@ class _LineChartSample2State extends State<LineChartSample2> {
                                         );
 
                                         if (newKelvin != null) {
+                                          //색온도 변경시 업데이트
                                           setState(() {
                                             cp.kelvin = newKelvin;
                                           });
                                         }
                                       },
                                       child: Column(
+                                        //시간, 색온도 표시 점
                                         children: [
                                           Text(
+                                            //시간
                                             '${cp.hour}:${cp.minute.toString().padLeft(2, '0')}',
                                             style: const TextStyle(
                                               color: AppColors.mainTextColor1,
@@ -233,8 +239,9 @@ class _LineChartSample2State extends State<LineChartSample2> {
                                             ),
                                           ),
                                           Container(
+                                            //색온도
                                             margin: const EdgeInsets.only(
-                                              top: 4,
+                                              top: 3,
                                             ),
                                             width: 13,
                                             height: 13,
@@ -256,66 +263,35 @@ class _LineChartSample2State extends State<LineChartSample2> {
                   ),
                 ),
               ),
-              if (selectedX != null && selectedPosition != null)
-                Positioned(
-                  top: 16,
-                  left: (selectedPosition!.dx - 70).clamp(0, chartWidth! - 180),
-                  child: Column(
-                    children: [
-                      Text(
-                        timeText,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(222, 255, 255, 255),
-                        ),
-                      ),
-                      Text(
-                        remainingTimeText,
-                        style: TextStyle(fontSize: 15, color: Colors.white70),
-                      ),
-                      Text(
-                        '밝기 $selectedY%',
-                        style: TextStyle(fontSize: 15, color: Colors.white70),
-                      ),
-                    ],
-                  ),
+              if (selectedX != null) //그래프를 클릭 중일때 표시하는 시간
+                GraphSelectedTime(
+                  selectedPosition: selectedPosition,
+                  chartWidth: chartWidth,
+                  timeText: timeText,
+                  remainingTimeText: remainingTimeText,
+                  selectedY: selectedY,
                 ),
-              if (isBrightnessMode &&
-                  (selectedX == null && selectedPosition == null))
-                Positioned(
-                  top: 16,
-                  child: Column(
-                    children: [
-                      Text(
-                        timeText,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(222, 255, 255, 255),
-                        ),
-                      ),
-                      Text(
-                        remainingTimeText,
-                        style: TextStyle(fontSize: 16, color: Colors.white70),
-                      ),
-                    ],
-                  ),
+              if (!isColorChanging &&
+                  selectedX == null) //색상 변경 모드가 아니고 그래프 클릭 중이 아닐때 표시하는 기본 시간
+                DefaultTime(
+                  timeText: timeText,
+                  remainingTimeText: remainingTimeText,
                 ),
-              if (selectedX == null && selectedPosition == null)
+              if (selectedX == null) //아이콘 위젯, 그래프를 클릭중이 아닐때 표시
                 Positioned(
                   right: 0,
                   top: 14,
                   child: IconButton(
                     onPressed: () {
                       setState(() {
-                        isBrightnessMode = !isBrightnessMode;
+                        isColorChanging = !isColorChanging;
                       });
                     },
                     icon: Icon(Icons.brush),
                     iconSize: 28,
                   ),
                 ),
+              if (isColorChanging) Positioned(child: Text('dfa')),
             ],
           ),
         );
@@ -378,7 +354,6 @@ class _LineChartSample2State extends State<LineChartSample2> {
             //터치 안하고 있을땐 Null
             setState(() {
               selectedX = null;
-              selectedPosition = null;
             });
           } else if (response != null && response.lineBarSpots != null) {
             //터치 중일때
@@ -433,6 +408,85 @@ class _LineChartSample2State extends State<LineChartSample2> {
           belowBarData: BarAreaData(show: true, gradient: underBarGradient),
         ),
       ],
+    );
+  }
+}
+
+class DefaultTime extends StatelessWidget {
+  const DefaultTime({
+    super.key,
+    required this.timeText,
+    required this.remainingTimeText,
+  });
+
+  final String timeText;
+  final String remainingTimeText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 16,
+      child: Column(
+        children: [
+          Text(
+            timeText,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(222, 255, 255, 255),
+            ),
+          ),
+          Text(
+            remainingTimeText,
+            style: TextStyle(fontSize: 16, color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GraphSelectedTime extends StatelessWidget {
+  const GraphSelectedTime({
+    super.key,
+    required this.selectedPosition,
+    required this.chartWidth,
+    required this.timeText,
+    required this.remainingTimeText,
+    required this.selectedY,
+  });
+
+  final Offset? selectedPosition;
+  final double? chartWidth;
+  final String timeText;
+  final String remainingTimeText;
+  final int? selectedY;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 16,
+      left: (selectedPosition!.dx - 70).clamp(0, chartWidth! - 180),
+      child: Column(
+        children: [
+          Text(
+            timeText,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(222, 255, 255, 255),
+            ),
+          ),
+          Text(
+            remainingTimeText,
+            style: TextStyle(fontSize: 15, color: Colors.white70),
+          ),
+          Text(
+            '밝기 $selectedY%',
+            style: TextStyle(fontSize: 15, color: Colors.white70),
+          ),
+        ],
+      ),
     );
   }
 }
