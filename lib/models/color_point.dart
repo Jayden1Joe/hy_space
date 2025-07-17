@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hy_space/utils/get_color_for_kelvin.dart';
 
 final colorPoints = [
-  ColorPoint(3, 0, 2000),
-  ColorPoint(11, 0, 2000),
-  ColorPoint(13, 30, 8000),
-  ColorPoint(23, 30, 8000),
+  ColorPoint(6, 0, 2000),
+  ColorPoint(7, 30, 8000),
+  ColorPoint(23, 30, 2000),
 ];
 
 class ColorPoint {

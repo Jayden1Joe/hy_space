@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:hy_space/models/brightness_point.dart';
 import 'package:hy_space/models/color_point.dart';
 import 'package:hy_space/resources/colors.dart';
 
@@ -526,16 +527,8 @@ extension GradientUtils on LinearGradient {
   }
 }
 
-List<FlSpot> keySpots = [
-  FlSpot(0, 0),
-  FlSpot(1, 0),
-  FlSpot(6, 0),
-  FlSpot(7, 2),
-  FlSpot(7.5, 7),
-  FlSpot(10, 9),
-  FlSpot(13, 10),
-  FlSpot(21, 4),
-  FlSpot(24, 0),
-];
+List<FlSpot> keySpots = brightnessPoints
+    .map((p) => FlSpot(p.timeInHours, p.brightness / 10.0))
+    .toList();
 
 List<FlSpot> smoothSpots = catmullRomInterpolateWithTension(keySpots);
