@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hy_space/graph.dart';
+import 'package:hy_space/graph_dot.dart';
+import 'package:hy_space/graph_with_slider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       theme: ThemeData(brightness: Brightness.light),
       darkTheme: ThemeData(brightness: Brightness.dark),
-      home: Scaffold(body: SafeArea(child: LineChartSample2())),
+      home: Scaffold(body: SafeArea(child: GraphDot())),
     );
   }
 }

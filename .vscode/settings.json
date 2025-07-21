@@ -1,3 +1,4 @@
 {
-    "idf.pythonInstallPath": "/usr/bin/python3"
+    "idf.pythonInstallPath": "/usr/bin/python3",
+    "cmake.sourceDirectory": "/Users/t2024-m0115/development/workspace/hy_space/linux"
 }

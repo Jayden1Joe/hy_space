@@ -4,14 +4,14 @@ import 'package:hy_space/models/brightness_point.dart';
 import 'package:hy_space/models/color_point.dart';
 import 'package:hy_space/resources/colors.dart';
 
-class LineChartSample2 extends StatefulWidget {
-  const LineChartSample2({super.key});
+class GraphDot extends StatefulWidget {
+  const GraphDot({super.key});
 
   @override
-  State<LineChartSample2> createState() => _LineChartSample2State();
+  State<GraphDot> createState() => _GraphDotState();
 }
 
-class _LineChartSample2State extends State<LineChartSample2> {
+class _GraphDotState extends State<GraphDot> {
   //기본 로직 취침시 2000K 0% 키면 30% 취침 3시간전 4000K 50%
   //기상 1시간전 2000K 밝기 20% 30분전 6000K 밝기 50% 기상시 8000K 밝기 70%
   //기상과 취침시간을 편집해서 자동으로 밝기, 색온도 그래프가 그려지게 하기.
@@ -137,161 +137,241 @@ class _LineChartSample2State extends State<LineChartSample2> {
         chartWidth = constraints.maxWidth;
         return Padding(
           padding: const EdgeInsets.only(
-            left: 20,
-            right: 20,
+            left: 25,
+            right: 25,
           ), // Ensure consistent horizontal padding
-          child: Stack(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(top: 96), //글자와 그래프 사이 간격
-                child: AspectRatio(
-                  aspectRatio: 3.3,
-                  child: Stack(
-                    children: [
-                      LineChart(mainData()), //그래프
-                      if (isColorChanging) // 색온도 변경시 점 위젯, 알람 위젯
-                        Positioned.fill(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              return Stack(
-                                clipBehavior: Clip.none,
-                                children: colorPoints.map((cp) {
-                                  //클릭하면 알람이 뜨는 색 표시 점들을 List로 만듦
-                                  final dx =
-                                      (cp.totalMinutes / 60) /
-                                      24 *
-                                      constraints.maxWidth;
+          child: Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 110), //글자와 그래프 사이 간격
+                    child: AspectRatio(
+                      aspectRatio: 3.3,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          LineChart(mainData()), //그래프
+                          if (isColorChanging) // 색온도 변경시 점 위젯, 알람 위젯
+                            Positioned.fill(
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return Stack(
+                                    clipBehavior: Clip.none,
+                                    children: colorPoints.map((cp) {
+                                      //클릭하면 알람이 뜨는 색 표시 점들을 List로 만듦
+                                      final dx =
+                                          (cp.totalMinutes / 60) /
+                                              24 *
+                                              constraints.maxWidth *
+                                              0.99 +
+                                          4;
 
-                                  final spot = smoothSpots.firstWhere(
-                                    (s) =>
-                                        (s.x - cp.totalMinutes / 60).abs() <
-                                        0.01,
-                                    orElse: () =>
-                                        FlSpot(cp.totalMinutes / 60, 0),
-                                  );
+                                      final spot = smoothSpots.firstWhere(
+                                        (s) =>
+                                            (s.x - cp.totalMinutes / 60).abs() <
+                                            0.01,
+                                        orElse: () =>
+                                            FlSpot(cp.totalMinutes / 60, 0),
+                                      );
 
-                                  final dy =
-                                      (1 - spot.y / 16.7) *
-                                      constraints.maxHeight;
+                                      final dy =
+                                          (1 - spot.y / 16.7) *
+                                          constraints.maxHeight;
 
-                                  return Positioned(
-                                    //점 위젯
-                                    left: dx - 20,
-                                    top: dy - 69,
-                                    child: GestureDetector(
-                                      //터치시 반응
-                                      onTap: () async {
-                                        final newKelvin = await showDialog<int>(
-                                          context: context,
-                                          builder: (_) {
-                                            final controller =
-                                                TextEditingController();
-                                            return AlertDialog(
-                                              //색온도 변경 알람
-                                              title: const Text("색온도 변경"),
-                                              content: TextField(
-                                                controller: controller,
-                                                keyboardType:
-                                                    TextInputType.number,
-                                                decoration: InputDecoration(
-                                                  hintText: '${cp.kelvin}',
-                                                ),
-                                                onSubmitted: (value) {
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pop(int.tryParse(value));
-                                                },
-                                              ),
-                                              actions: [
-                                                //확인 버튼
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop(
-                                                      int.tryParse(
-                                                        controller.text,
+                                      return Positioned(
+                                        //점 위젯
+                                        left: dx - 20,
+                                        top: dy - 53,
+                                        child: GestureDetector(
+                                          //터치시 반응
+                                          onTap: () async {
+                                            final newKelvin =
+                                                await showDialog<int>(
+                                                  context: context,
+                                                  builder: (_) {
+                                                    final controller =
+                                                        TextEditingController();
+                                                    return AlertDialog(
+                                                      //색온도 변경 알람
+                                                      title: const Text(
+                                                        "색온도 변경",
                                                       ),
+                                                      content: TextField(
+                                                        controller: controller,
+                                                        keyboardType:
+                                                            TextInputType
+                                                                .number,
+                                                        decoration:
+                                                            InputDecoration(
+                                                              hintText:
+                                                                  '${cp.kelvin}',
+                                                            ),
+                                                        onSubmitted: (value) {
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop(
+                                                            int.tryParse(value),
+                                                          );
+                                                        },
+                                                      ),
+                                                      actions: [
+                                                        //확인 버튼
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.of(
+                                                              context,
+                                                            ).pop(
+                                                              int.tryParse(
+                                                                controller.text,
+                                                              ),
+                                                            );
+                                                          },
+                                                          child: const Text(
+                                                            "확인",
+                                                          ),
+                                                        ),
+                                                      ],
                                                     );
                                                   },
-                                                  child: const Text("확인"),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
+                                                );
 
-                                        if (newKelvin != null) {
-                                          //색온도 변경시 업데이트
-                                          setState(() {
-                                            cp.kelvin = newKelvin;
-                                          });
-                                        }
-                                      },
-                                      child: Column(
-                                        //시간, 색온도 표시 점
-                                        children: [
-                                          Text(
-                                            //시간
-                                            '${cp.hour}:${cp.minute.toString().padLeft(2, '0')}',
-                                            style: const TextStyle(
-                                              color: AppColors.mainTextColor1,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                            if (newKelvin != null) {
+                                              //색온도 변경시 업데이트
+                                              setState(() {
+                                                cp.kelvin = newKelvin;
+                                              });
+                                            }
+                                          },
+                                          child: Column(
+                                            //시간, 색온도 표시 점
+                                            children: [
+                                              Text(
+                                                //시간
+                                                '${cp.hour}:${cp.minute.toString().padLeft(2, '0')}',
+                                                style: const TextStyle(
+                                                  color:
+                                                      AppColors.mainTextColor1,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Container(
+                                                //색온도
+                                                margin: const EdgeInsets.only(
+                                                  top: 3,
+                                                ),
+                                                width: 13,
+                                                height: 13,
+                                                decoration: BoxDecoration(
+                                                  color: cp.color,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          Container(
-                                            //색온도
-                                            margin: const EdgeInsets.only(
-                                              top: 3,
-                                            ),
-                                            width: 13,
-                                            height: 13,
-                                            decoration: BoxDecoration(
-                                              color: cp.color,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                        ),
+                                      );
+                                    }).toList(),
                                   );
-                                }).toList(),
-                              );
-                            },
-                          ),
-                        ),
-                    ],
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                  if (selectedX != null) //그래프를 클릭 중일때 표시하는 시간
+                    GraphSelectedTime(
+                      selectedPosition: selectedPosition,
+                      chartWidth: chartWidth,
+                      timeText: timeText,
+                      remainingTimeText: remainingTimeText,
+                      selectedY: selectedY,
+                    ),
+                  if (!isColorChanging &&
+                      selectedX ==
+                          null) //색상 변경 모드가 아니고 그래프 클릭 중이 아닐때 표시하는 기본 시간
+                    DefaultTime(
+                      timeText: timeText,
+                      remainingTimeText: remainingTimeText,
+                    ),
+                  if (selectedX == null) //아이콘 위젯, 그래프를 클릭중이 아닐때 표시
+                    Positioned(
+                      right: 0,
+                      top: 14,
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isColorChanging = !isColorChanging;
+                          });
+                        },
+                        icon: Icon(Icons.brush),
+                        iconSize: 28,
+                      ),
+                    ),
+                  if (isColorChanging)
+                    Positioned(
+                      top: 12,
+                      left: -4,
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            colorPoints.add(ColorPoint(11, 30, 5000));
+                          });
+                        },
+                        icon: Icon(Icons.add, size: 33),
+                      ),
+                    ),
+                ],
               ),
-              if (selectedX != null) //그래프를 클릭 중일때 표시하는 시간
-                GraphSelectedTime(
-                  selectedPosition: selectedPosition,
-                  chartWidth: chartWidth,
-                  timeText: timeText,
-                  remainingTimeText: remainingTimeText,
-                  selectedY: selectedY,
-                ),
-              if (!isColorChanging &&
-                  selectedX == null) //색상 변경 모드가 아니고 그래프 클릭 중이 아닐때 표시하는 기본 시간
-                DefaultTime(
-                  timeText: timeText,
-                  remainingTimeText: remainingTimeText,
-                ),
-              if (selectedX == null) //아이콘 위젯, 그래프를 클릭중이 아닐때 표시
-                Positioned(
-                  right: 0,
-                  top: 14,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        isColorChanging = !isColorChanging;
-                      });
-                    },
-                    icon: Icon(Icons.brush),
-                    iconSize: 28,
+              SizedBox(height: 35),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white10,
+                        fixedSize: const Size(0, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        '기상시간    7:00',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.mainTextColor1,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ), // 텍스트 없는 버튼
+                    ),
                   ),
-                ),
-              if (isColorChanging) Positioned(child: Text('dfa')),
+                  SizedBox(width: 15),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white10,
+                        fixedSize: const Size(0, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        '취침시간   23:30',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.mainTextColor1,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ), // 텍스트 없는 버튼
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         );
@@ -494,7 +574,7 @@ class GraphSelectedTime extends StatelessWidget {
 List<FlSpot> catmullRomInterpolateWithTension(
   List<FlSpot> points, {
   int resolutionPerHour = 60,
-  double curveSmoothness = 0.7,
+  double curveSmoothness = 0.75,
 }) {
   double _catmullRomTension(
     double t,
@@ -581,7 +661,9 @@ extension GradientUtils on LinearGradient {
   }
 }
 
-List<FlSpot> keySpots = brightnessPoints
+final compBrightnessPoints = completeBrightnessPoints(brightnessPoints);
+
+List<FlSpot> keySpots = compBrightnessPoints
     .map((p) => FlSpot(p.timeInHours, p.brightness / 10.0))
     .toList();
 

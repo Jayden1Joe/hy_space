@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hy_space/utils/get_color_for_kelvin.dart';
 
 final colorPoints = [
-  ColorPoint(6, 0, 2000),
+  ColorPoint(3, 0, 8000),
   ColorPoint(7, 30, 8000),
-  ColorPoint(23, 30, 2000),
+  ColorPoint(22, 00, 2000),
 ];
 
 class ColorPoint {
@@ -18,9 +18,18 @@ class ColorPoint {
 
   Color get color => getColorForKelvin(kelvin);
 
+  /// 주어진 ColorPoint 리스트를 시간 순으로 정렬한 후,
+  /// 각 ColorPoint에서 색상(Color)만 추출하여 Gradient용 리스트로 반환한다.
+  /// 즉, 시간 흐름에 따른 색상 그라디언트를 만들기 위한 준비 함수.
+  ///
+  /// 예: [ColorPoint(6:00, blue), ColorPoint(12:00, white), ColorPoint(18:00, orange)]
+  /// → [blue, white, orange]
   static List<Color> toGradientColors(List<ColorPoint> points) {
+    // 원본 리스트를 복사하고 시간 순으로 정렬
     final sorted = [...points]
       ..sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
+
+    // 정렬된 리스트에서 color만 추출해 반환
     return sorted.map((p) => p.color).toList();
   }
 
@@ -65,24 +74,20 @@ class CustomKelvinGradient {
     final firstStop = first.totalMinutes / 1440; //0.3
     final lastStop = last.totalMinutes / 1440; //0.95
 
-    if (first.kelvin != last.kelvin) {
-      //서로 캘빈이 다르면 중간 색을 찾아서 처음과 끝에 넣어줌
-      int middleKelvin = 5000;
-      final ratio =
-          (1.0 - lastStop) / ((1.0 - lastStop) + firstStop); // 0.05 0.5
-      if (last.kelvin > first.kelvin) {
-        middleKelvin =
-            last.kelvin - ((last.kelvin - first.kelvin) * ratio).toInt();
-      } else if (first.kelvin > last.kelvin) {
-        middleKelvin =
-            last.kelvin + ((first.kelvin - last.kelvin) * ratio).toInt(); //0.05
-      }
+    final isFirstMissing = first.totalMinutes != 0;
+    final isLastMissing = last.totalMinutes != 1439;
 
-      if (first.totalMinutes != 0) {
+    if (first.kelvin != last.kelvin && (isFirstMissing || isLastMissing)) {
+      final ratio = (1.0 - lastStop) / ((1.0 - lastStop) + firstStop);
+      final delta = (last.kelvin - first.kelvin).abs();
+      int middleKelvin = last.kelvin > first.kelvin
+          ? last.kelvin - (delta * ratio).toInt()
+          : last.kelvin + (delta * ratio).toInt();
+
+      if (isFirstMissing) {
         sortedPoints.insert(0, ColorPoint(0, 0, middleKelvin));
       }
-
-      if (last.totalMinutes != 1439) {
+      if (isLastMissing) {
         sortedPoints.add(ColorPoint(23, 59, middleKelvin));
       }
     }
